@@ -3,16 +3,6 @@ if (WITH_LIB_CPP)
 	add_subdirectory(cpp)
 endif (WITH_LIB_CPP)
 
-include_directories(${mosquitto_SOURCE_DIR} ${mosquitto_SOURCE_DIR}/lib
-			${mosquitto_SOURCE_DIR}/include
-			${STDBOOL_H_PATH} ${STDINT_H_PATH}
-			${OPENSSL_INCLUDE_DIR} ${PTHREAD_INCLUDE_DIR})
-link_directories(${mosquitto_SOURCE_DIR}/lib)
-
-if (WITH_BUNDLED_DEPS)
-        include_directories(${mosquitto_SOURCE_DIR} ${mosquitto_SOURCE_DIR}/deps)
-endif (WITH_BUNDLED_DEPS)
-
 set(C_SRC
 	actions.c
 	callbacks.c
@@ -88,6 +78,26 @@ set_target_properties(libmosquitto PROPERTIES
 	POSITION_INDEPENDENT_CODE 1
 )
 
+set(public_includes 
+	${CMAKE_CURRENT_SOURCE_DIR}/../include
+)
+
+set(private_includes
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/.. # for config.h
+	${STDBOOL_H_PATH}
+	${STDINT_H_PATH}
+	${OPENSSL_INCLUDE_DIR}
+	${PTHREAD_INCLUDE_DIR}
+)
+
+if (WITH_BUNDLED_DEPS)
+    set(private_includes ${private_includes} ${CMAKE_CURRENT_SOURCE_DIR}/../deps)
+endif (WITH_BUNDLED_DEPS)
+
+target_include_directories(libmosquitto PUBLIC ${public_includes})
+target_include_directories(libmosquitto PRIVATE ${private_includes})
+
 target_link_libraries(libmosquitto ${LIBRARIES})
 
 set_target_properties(libmosquitto PROPERTIES
@@ -110,6 +120,8 @@ if (WITH_STATIC_LIBRARIES)
 	endif (WITH_PIC)
 
 	target_link_libraries(libmosquitto_static ${LIBRARIES})
+	target_include_directories(libmosquitto_static PUBLIC ${public_includes})
+	target_include_directories(libmosquitto_static PRIVATE ${private_includes})
 
 	set_target_properties(libmosquitto_static PROPERTIES
 		OUTPUT_NAME mosquitto_static

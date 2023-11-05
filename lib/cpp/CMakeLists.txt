@@ -1,11 +1,7 @@
-include_directories(${mosquitto_SOURCE_DIR}/lib ${mosquitto_SOURCE_DIR}/lib/cpp
-			${mosquitto_SOURCE_DIR}/include
-			${STDBOOL_H_PATH} ${STDINT_H_PATH})
-link_directories(${mosquitto_BINARY_DIR}/lib)
-
 set(CPP_SRC mosquittopp.cpp mosquittopp.h)
 
 add_library(mosquittopp SHARED ${CPP_SRC})
+target_include_directories(mosquittopp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(mosquittopp PROPERTIES
 	POSITION_INDEPENDENT_CODE 1
 )
@@ -21,7 +17,6 @@ install(TARGETS mosquittopp
 
 if (WITH_STATIC_LIBRARIES)
 	add_library(mosquittopp_static STATIC
-		${C_SRC}
 		${CPP_SRC}
 	)
 	if (WITH_PIC)
@@ -30,7 +25,8 @@ if (WITH_STATIC_LIBRARIES)
 		)
 	endif (WITH_PIC)
 
-	target_link_libraries(mosquittopp_static ${LIBRARIES})
+	target_link_libraries(mosquittopp_static libmosquitto_static)
+	target_include_directories(mosquittopp_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 	set_target_properties(mosquittopp_static PROPERTIES
 		OUTPUT_NAME mosquittopp_static
